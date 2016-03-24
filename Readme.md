@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url] [![Dependency status][dependency-image]][dependency-url]
 
 * Студент: [Андрей Давликанов](https://up.htmlacademy.ru/javascript/4/user/80683).
-* Наставник: `Неизвестно`.
+* Наставник: [Игорь Антонов](https://htmlacademy.ru/profile/id3162).
 
 ---
 
