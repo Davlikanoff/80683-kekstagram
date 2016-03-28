@@ -1,9 +1,8 @@
 function getMessage(a, b) {
-	var 
-		result;
+	var result;
 
 	// проверка на GIF
-	if (a === Boolean(a)) {
+	if (typeof(a) == "boolean") {
 		if (a) {
 			result = "Переданное GIF-изображение анимировано и содержит " + b + " кадров";
 		} else {
@@ -11,14 +10,13 @@ function getMessage(a, b) {
 		}
 	}
 	// проверка на SVG
-	else if (a === Number(a)) {
+	else if (typeof(a) == "number") {
 		result = "Переданное SVG-изображение содержит " + a + " объектов и " + (b * 4) + " атрибутов";
 	}
 	else if (Array.isArray(a)) {
 	// проверка на JPG
 		if (Array.isArray(b)) {
-			var 
-				square = 0;
+			var square = 0;
 
 			for (var i = 0; i <= (a.length - 1); i++) {
 				square = square + a[i] * b[i];
@@ -28,8 +26,7 @@ function getMessage(a, b) {
 		}
 	// проверка на PNG
 		else {
-			var 
-				sum = 0;
+			var sum = 0;
 
 			for (var i = 0; i <= (a.length - 1); i++) {
 				sum = sum + a[i];
