@@ -107,18 +107,79 @@
 
       var displX = -(this._resizeConstraint.x + this._resizeConstraint.side / 2);
       var displY = -(this._resizeConstraint.y + this._resizeConstraint.side / 2);
+
+      // Рисуем полупрозрачный черный фон поверх фото
+      this._ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      this._ctx.fillRect(displX, displY, this._container.width, this._container.height);
+
+      // Вырезаем полностью прозрачную область из полупрозрачного фона
+      this._ctx.clearRect(
+          -this._resizeConstraint.side / 2,
+          -this._resizeConstraint.side / 2,
+          this._resizeConstraint.side,
+          this._resizeConstraint.side);
+
+      function drawSquareFrame(cntx, side, dotRadius, part) {
+        var stepX, stepY, coeffX, coeffY, x, y;
+
+        if (part == 'all') {
+          drawSquareFrame(cntx, side, dotRadius, 'top');
+          drawSquareFrame(cntx, side, dotRadius, 'right');
+          drawSquareFrame(cntx, side, dotRadius, 'bottom');
+          drawSquareFrame(cntx, side, dotRadius, 'left');
+          return;
+        } else if (part == 'left') {
+          coeffX = -1;
+          coeffY = 1;
+          stepX = 0;
+          stepY = -1;
+        } else if (part == 'right') {
+          coeffX = 1;
+          coeffY = -1;
+          stepX = 0;
+          stepY = 1;
+        } else if (part == 'top') {
+          coeffX = -1;
+          coeffY = -1;
+          stepX = 1;
+          stepY = 0;
+        } else if (part == 'bottom') {
+          coeffX = 1;
+          coeffY = 1;
+          stepX = -1;
+          stepY = 0;
+        }
+
+        for (var i = 0; i < side - dotRadius * 2;) {
+          x = coeffX * (side / 2 - dotRadius) + i * stepX;
+          y = coeffY * (side / 2 - dotRadius) + i * stepY;
+
+          cntx.moveTo(x, y);
+          cntx.beginPath();
+          cntx.arc(x, y, dotRadius, 0, Math.PI * 2, false);
+          cntx.closePath();
+          cntx.fill();
+
+          i = i + dotRadius * 4;
+        }
+      }
+
+      this._ctx.fillStyle = '#ffe753';
+      drawSquareFrame(this._ctx, this._resizeConstraint.side, 3, 'all');
+
+      // Выводим размеры оригинального изображения
+      this._ctx.fillStyle = '#FFFFFF';
+      this._ctx.font = '15px sans-serif';
+      this._ctx.textAlign = 'center';
+      this._ctx.fillText(this._container.width + " x " + this._container.height, 0, (-this._resizeConstraint.side / 2) - this._ctx.lineWidth - 4);
+
+      // Устанавливаем режим смешивания так, чтобы фото было ПОД полупрозрачным фоном и рамкой
+      this._ctx.globalCompositeOperation = 'destination-over';
+
       // Отрисовка изображения на холсте. Параметры задают изображение, которое
       // нужно отрисовать и координаты его верхнего левого угла.
       // Координаты задаются от центра холста.
       this._ctx.drawImage(this._image, displX, displY);
-
-      // Отрисовка прямоугольника, обозначающего область изображения после
-      // кадрирования. Координаты задаются от центра.
-      this._ctx.strokeRect(
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2);
 
       // Восстановление состояния канваса, которое было до вызова ctx.save
       // и последующего изменения системы координат. Нужно для того, чтобы
