@@ -119,59 +119,14 @@
           this._resizeConstraint.side,
           this._resizeConstraint.side);
 
-      function drawSquareFrame(cntx, side, dotRadius, part) {
-        var stepX, stepY, coeffX, coeffY, x, y;
-
-        if (part == 'all') {
-          drawSquareFrame(cntx, side, dotRadius, 'top');
-          drawSquareFrame(cntx, side, dotRadius, 'right');
-          drawSquareFrame(cntx, side, dotRadius, 'bottom');
-          drawSquareFrame(cntx, side, dotRadius, 'left');
-          return;
-        } else if (part == 'left') {
-          coeffX = -1;
-          coeffY = 1;
-          stepX = 0;
-          stepY = -1;
-        } else if (part == 'right') {
-          coeffX = 1;
-          coeffY = -1;
-          stepX = 0;
-          stepY = 1;
-        } else if (part == 'top') {
-          coeffX = -1;
-          coeffY = -1;
-          stepX = 1;
-          stepY = 0;
-        } else if (part == 'bottom') {
-          coeffX = 1;
-          coeffY = 1;
-          stepX = -1;
-          stepY = 0;
-        }
-
-        for (var i = 0; i < side - dotRadius * 2;) {
-          x = coeffX * (side / 2 - dotRadius) + i * stepX;
-          y = coeffY * (side / 2 - dotRadius) + i * stepY;
-
-          cntx.moveTo(x, y);
-          cntx.beginPath();
-          cntx.arc(x, y, dotRadius, 0, Math.PI * 2, false);
-          cntx.closePath();
-          cntx.fill();
-
-          i = i + dotRadius * 4;
-        }
-      }
-
       this._ctx.fillStyle = '#ffe753';
-      drawSquareFrame(this._ctx, this._resizeConstraint.side, 3, 'all');
+      this.drawSquareFrame(this._resizeConstraint.side, 3, 'all');
 
       // Выводим размеры оригинального изображения
       this._ctx.fillStyle = '#FFFFFF';
       this._ctx.font = '15px sans-serif';
       this._ctx.textAlign = 'center';
-      this._ctx.fillText(this._container.width + " x " + this._container.height, 0, (-this._resizeConstraint.side / 2) - this._ctx.lineWidth - 4);
+      this._ctx.fillText(this._container.width + ' x ' + this._container.height, 0, (-this._resizeConstraint.side / 2) - this._ctx.lineWidth - 4);
 
       // Устанавливаем режим смешивания так, чтобы фото было ПОД полупрозрачным фоном и рамкой
       this._ctx.globalCompositeOperation = 'destination-over';
@@ -188,6 +143,54 @@
       // некорректно сработает даже очистка холста или нужно будет использовать
       // сложные рассчеты для координат прямоугольника, который нужно очистить.
       this._ctx.restore();
+    },
+
+    // Функция отрисовки точечной рамки
+    drawSquareFrame: function(side, dotRadius, part) {
+      var stepX, stepY, coeffX, coeffY, x, y;
+
+      switch (part) {
+        case 'all':
+          this.drawSquareFrame(side, dotRadius, 'top');
+          this.drawSquareFrame(side, dotRadius, 'right');
+          this.drawSquareFrame(side, dotRadius, 'bottom');
+          this.drawSquareFrame(side, dotRadius, 'left');
+          break;
+        case 'top':
+          coeffX = -1;
+          coeffY = -1;
+          stepX = 1;
+          stepY = 0;
+          break;
+        case 'right':
+          coeffX = 1;
+          coeffY = -1;
+          stepX = 0;
+          stepY = 1;
+          break;
+        case 'bottom':
+          coeffX = 1;
+          coeffY = 1;
+          stepX = -1;
+          stepY = 0;
+          break;
+        case 'left':
+          coeffX = -1;
+          coeffY = 1;
+          stepX = 0;
+          stepY = -1;
+          break;
+      }
+      for (var i = 0; i < side - dotRadius * 2;) {
+        x = coeffX * (side / 2 - dotRadius) + i * stepX;
+        y = coeffY * (side / 2 - dotRadius) + i * stepY;
+        this._ctx.moveTo(x, y);
+        this._ctx.beginPath();
+        this._ctx.arc(x, y, dotRadius, 0, Math.PI * 2, false);
+        this._ctx.closePath();
+        this._ctx.fill();
+        i = i + dotRadius * 4;
+      }
     },
 
     /**
