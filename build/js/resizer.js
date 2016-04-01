@@ -107,18 +107,34 @@
 
       var displX = -(this._resizeConstraint.x + this._resizeConstraint.side / 2);
       var displY = -(this._resizeConstraint.y + this._resizeConstraint.side / 2);
+
+      // Рисуем полупрозрачный черный фон поверх фото
+      this._ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      this._ctx.fillRect(displX, displY, this._container.width, this._container.height);
+
+      // Вырезаем полностью прозрачную область из полупрозрачного фона
+      this._ctx.clearRect(
+          -this._resizeConstraint.side / 2,
+          -this._resizeConstraint.side / 2,
+          this._resizeConstraint.side,
+          this._resizeConstraint.side);
+
+      this._ctx.fillStyle = '#ffe753';
+      this.drawSquareFrame(this._resizeConstraint.side, 3, 'all');
+
+      // Выводим размеры оригинального изображения
+      this._ctx.fillStyle = '#FFFFFF';
+      this._ctx.font = '15px sans-serif';
+      this._ctx.textAlign = 'center';
+      this._ctx.fillText(this._container.width + ' x ' + this._container.height, 0, (-this._resizeConstraint.side / 2) - this._ctx.lineWidth - 4);
+
+      // Устанавливаем режим смешивания так, чтобы фото было ПОД полупрозрачным фоном и рамкой
+      this._ctx.globalCompositeOperation = 'destination-over';
+
       // Отрисовка изображения на холсте. Параметры задают изображение, которое
       // нужно отрисовать и координаты его верхнего левого угла.
       // Координаты задаются от центра холста.
       this._ctx.drawImage(this._image, displX, displY);
-
-      // Отрисовка прямоугольника, обозначающего область изображения после
-      // кадрирования. Координаты задаются от центра.
-      this._ctx.strokeRect(
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2);
 
       // Восстановление состояния канваса, которое было до вызова ctx.save
       // и последующего изменения системы координат. Нужно для того, чтобы
@@ -127,6 +143,54 @@
       // некорректно сработает даже очистка холста или нужно будет использовать
       // сложные рассчеты для координат прямоугольника, который нужно очистить.
       this._ctx.restore();
+    },
+
+    // Функция отрисовки точечной рамки
+    drawSquareFrame: function(side, dotRadius, part) {
+      var stepX, stepY, coeffX, coeffY, x, y;
+
+      switch (part) {
+        case 'all':
+          this.drawSquareFrame(side, dotRadius, 'top');
+          this.drawSquareFrame(side, dotRadius, 'right');
+          this.drawSquareFrame(side, dotRadius, 'bottom');
+          this.drawSquareFrame(side, dotRadius, 'left');
+          break;
+        case 'top':
+          coeffX = -1;
+          coeffY = -1;
+          stepX = 1;
+          stepY = 0;
+          break;
+        case 'right':
+          coeffX = 1;
+          coeffY = -1;
+          stepX = 0;
+          stepY = 1;
+          break;
+        case 'bottom':
+          coeffX = 1;
+          coeffY = 1;
+          stepX = -1;
+          stepY = 0;
+          break;
+        case 'left':
+          coeffX = -1;
+          coeffY = 1;
+          stepX = 0;
+          stepY = -1;
+          break;
+      }
+      for (var i = 0; i < side - dotRadius * 2;) {
+        x = coeffX * (side / 2 - dotRadius) + i * stepX;
+        y = coeffY * (side / 2 - dotRadius) + i * stepY;
+        this._ctx.moveTo(x, y);
+        this._ctx.beginPath();
+        this._ctx.arc(x, y, dotRadius, 0, Math.PI * 2, false);
+        this._ctx.closePath();
+        this._ctx.fill();
+        i = i + dotRadius * 4;
+      }
     },
 
     /**
