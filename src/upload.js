@@ -67,11 +67,39 @@
     backgroundElement.style.backgroundImage = 'url(' + images[randomImageNumber] + ')';
   }
 
+  var resizeX = document.querySelector('#resize-x');
+  var resizeY = document.querySelector('#resize-y');
+  var resizeSize = document.querySelector('#resize-size');
+  var resizeBtn = document.querySelector('#resize-fwd');
+  var maxAvailableSize;
+
   /**
    * Проверяет, валидны ли данные, в форме кадрирования.
    * @return {boolean}
    */
   function resizeFormIsValid() {
+    var x = resizeX.value;
+    var y = resizeY.value;
+    var size = resizeSize.value;
+
+    if (isNaN(x) || isNaN(y) || isNaN(size)) {
+      return false;
+    } else {
+      x = Number(x);
+      y = Number(y);
+      size = Number(size);
+    }
+
+    if ((x + size) > currentResizer._image.naturalWidth) {
+      // console.log('Перебор по горизонтали! ' + currentResizer._image.naturalWidth + ' / ' + (x + size));
+      return false;
+    }
+
+    if ((y + size) > currentResizer._image.naturalHeight) {
+      // console.log('Перебор по вертикали! ' + currentResizer._image.naturalHeight + ' / ' + (y + size));
+      return false;
+    }
+
     return true;
   }
 
@@ -132,6 +160,30 @@
     uploadMessage.classList.add('invisible');
   }
 
+  resizeX.onchange = function() {
+    if(resizeFormIsValid()) {
+      resizeBtn.disabled = false;
+    } else {
+      resizeBtn.disabled = true;
+    }
+  };
+
+  resizeY.onchange = function() {
+    if(resizeFormIsValid()) {
+      resizeBtn.disabled = false;
+    } else {
+      resizeBtn.disabled = true;
+    }
+  };
+
+  resizeSize.onchange = function() {
+    if(resizeFormIsValid()) {
+      resizeBtn.disabled = false;
+    } else {
+      resizeBtn.disabled = true;
+    }
+  };
+
   /**
    * Обработчик изменения изображения в форме загрузки. Если загруженный
    * файл является изображением, считывается исходник картинки, создается
@@ -158,6 +210,17 @@
 
           uploadForm.classList.add('invisible');
           resizeForm.classList.remove('invisible');
+
+          /**
+            Выставляем в поле "Сторона" минимальную сторону изображения
+          */
+          if (currentResizer._image.naturalWidth >= currentResizer._image.naturalHeight) {
+            maxAvailableSize = currentResizer._image.naturalHeight;
+          } else {
+            maxAvailableSize = currentResizer._image.naturalWidth;
+          }
+          resizeSize.max = maxAvailableSize;
+          resizeSize.value = maxAvailableSize;
 
           hideMessage();
         };
