@@ -67,40 +67,25 @@
     backgroundElement.style.backgroundImage = 'url(' + images[randomImageNumber] + ')';
   }
 
-  var resizeX = document.querySelector('#resize-x');
-  var resizeY = document.querySelector('#resize-y');
-  var resizeSize = document.querySelector('#resize-size');
-  var resizeBtn = document.querySelector('#resize-fwd');
-  var maxAvailableSize;
-
   /**
    * Проверяет, валидны ли данные, в форме кадрирования.
    * @return {boolean}
    */
   function resizeFormIsValid() {
-    var x = resizeX.value;
-    var y = resizeY.value;
-    var size = resizeSize.value;
+    var resizeX = parseInt(resizeFormResizeX.value, 10) || 0;
+    var resizeY = parseInt(resizeFormResizeY.value, 10) || 0;
+    var resizeSize = parseInt(resizeFormResizeSize.value, 10) || 0;
+    var result = true;
 
-    if (isNaN(x) || isNaN(y) || isNaN(size)) {
-      return false;
-    } else {
-      x = Number(x);
-      y = Number(y);
-      size = Number(size);
+    if ((resizeX + resizeSize) > currentResizer._image.naturalWidth) {
+      result = false;
     }
 
-    if ((x + size) > currentResizer._image.naturalWidth) {
-      // console.log('Перебор по горизонтали! ' + currentResizer._image.naturalWidth + ' / ' + (x + size));
-      return false;
+    if ((resizeY + resizeSize) > currentResizer._image.naturalHeight) {
+      result = false;
     }
 
-    if ((y + size) > currentResizer._image.naturalHeight) {
-      // console.log('Перебор по вертикали! ' + currentResizer._image.naturalHeight + ' / ' + (y + size));
-      return false;
-    }
-
-    return true;
+    return result;
   }
 
   /**
@@ -120,6 +105,12 @@
    * @type {HTMLFormElement}
    */
   var filterForm = document.forms['upload-filter'];
+
+  var resizeFormResizeX = resizeForm['x'];
+  var resizeFormResizeY = resizeForm['y'];
+  var resizeFormResizeSize = resizeForm['size'];
+  var resizeFormSubmitBtn = resizeForm['fwd'];
+  var maxAvailableSize;
 
   /**
    * @type {HTMLImageElement}
@@ -160,27 +151,27 @@
     uploadMessage.classList.add('invisible');
   }
 
-  resizeX.onchange = function() {
+  resizeFormResizeX.onchange = function() {
     if(resizeFormIsValid()) {
-      resizeBtn.disabled = false;
+      resizeFormSubmitBtn.disabled = false;
     } else {
-      resizeBtn.disabled = true;
+      resizeFormSubmitBtn.disabled = true;
     }
   };
 
-  resizeY.onchange = function() {
+  resizeFormResizeY.onchange = function() {
     if(resizeFormIsValid()) {
-      resizeBtn.disabled = false;
+      resizeFormSubmitBtn.disabled = false;
     } else {
-      resizeBtn.disabled = true;
+      resizeFormSubmitBtn.disabled = true;
     }
   };
 
-  resizeSize.onchange = function() {
+  resizeFormResizeSize.onchange = function() {
     if(resizeFormIsValid()) {
-      resizeBtn.disabled = false;
+      resizeFormSubmitBtn.disabled = false;
     } else {
-      resizeBtn.disabled = true;
+      resizeFormSubmitBtn.disabled = true;
     }
   };
 
@@ -219,8 +210,8 @@
           } else {
             maxAvailableSize = currentResizer._image.naturalWidth;
           }
-          resizeSize.max = maxAvailableSize;
-          resizeSize.value = maxAvailableSize;
+          resizeFormResizeSize.max = maxAvailableSize;
+          resizeFormResizeSize.value = maxAvailableSize;
 
           hideMessage();
         };
