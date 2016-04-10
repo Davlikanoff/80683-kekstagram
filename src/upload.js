@@ -72,7 +72,20 @@
    * @return {boolean}
    */
   function resizeFormIsValid() {
-    return true;
+    var resizeX = parseInt(resizeFormResizeX.value, 10) || 0;
+    var resizeY = parseInt(resizeFormResizeY.value, 10) || 0;
+    var resizeSize = parseInt(resizeFormResizeSize.value, 10) || 0;
+    var result = true;
+
+    if ((resizeX + resizeSize) > currentResizer._image.naturalWidth) {
+      result = false;
+    }
+
+    if ((resizeY + resizeSize) > currentResizer._image.naturalHeight) {
+      result = false;
+    }
+
+    return result;
   }
 
   /**
@@ -92,6 +105,12 @@
    * @type {HTMLFormElement}
    */
   var filterForm = document.forms['upload-filter'];
+
+  var resizeFormResizeX = resizeForm['x'];
+  var resizeFormResizeY = resizeForm['y'];
+  var resizeFormResizeSize = resizeForm['size'];
+  var resizeFormSubmitBtn = resizeForm['fwd'];
+  var maxAvailableSize;
 
   /**
    * @type {HTMLImageElement}
@@ -132,6 +151,30 @@
     uploadMessage.classList.add('invisible');
   }
 
+  resizeFormResizeX.onchange = function() {
+    if(resizeFormIsValid()) {
+      resizeFormSubmitBtn.disabled = false;
+    } else {
+      resizeFormSubmitBtn.disabled = true;
+    }
+  };
+
+  resizeFormResizeY.onchange = function() {
+    if(resizeFormIsValid()) {
+      resizeFormSubmitBtn.disabled = false;
+    } else {
+      resizeFormSubmitBtn.disabled = true;
+    }
+  };
+
+  resizeFormResizeSize.onchange = function() {
+    if(resizeFormIsValid()) {
+      resizeFormSubmitBtn.disabled = false;
+    } else {
+      resizeFormSubmitBtn.disabled = true;
+    }
+  };
+
   /**
    * Обработчик изменения изображения в форме загрузки. Если загруженный
    * файл является изображением, считывается исходник картинки, создается
@@ -158,6 +201,17 @@
 
           uploadForm.classList.add('invisible');
           resizeForm.classList.remove('invisible');
+
+          /**
+            Выставляем в поле "Сторона" минимальную сторону изображения
+          */
+          if (currentResizer._image.naturalWidth >= currentResizer._image.naturalHeight) {
+            maxAvailableSize = currentResizer._image.naturalHeight;
+          } else {
+            maxAvailableSize = currentResizer._image.naturalWidth;
+          }
+          resizeFormResizeSize.max = maxAvailableSize;
+          resizeFormResizeSize.value = maxAvailableSize;
 
           hideMessage();
         };
