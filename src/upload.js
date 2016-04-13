@@ -7,6 +7,8 @@
 
 'use strict';
 
+var browserCookies = require('browser-cookies');
+
 (function() {
   /** @enum {string} */
   var FileType = {
@@ -33,13 +35,58 @@
   /**
    * @type {Object.<string, string>}
    */
-  var filterMap;
+  var filterMap = {
+    'none': 'filter-none',
+    'chrome': 'filter-chrome',
+    'sepia': 'filter-sepia'
+  };
 
   /**
    * Объект, который занимается кадрированием изображения.
    * @type {Resizer}
    */
   var currentResizer;
+
+  function cookiesLifeTime(month, date) {
+    var currentDate = new Date();
+    var currentMonth = currentDate.getMonth(currentDate) + 1;
+    var currentDay = currentDate.getDate(currentDate);
+    var lastBirthday = new Date(currentDate.getFullYear(), month - 1, date);
+    var diff;
+
+    //Если ДР ещё не наступило, то считаем разницу с прошлого года
+    if ( (month > currentMonth) || (month === currentMonth && date > currentDay ) ) {
+      lastBirthday.setFullYear(currentDate.getFullYear() - 1);
+    }
+
+    //Если ДР сегодня, то срок жизни куки 23:59:59, начиная с текущего времени
+    if ( (month === currentMonth) && (date === currentDay) ) {
+      diff = (23 * 3600 + 59 * 60 + 59) * 1000;
+    } else {
+      diff = currentDate - lastBirthday;
+    }
+
+    var result = new Date(+currentDate + diff).toUTCString();
+    return result;
+  }
+
+  function setLastUsedFilter() {
+    var radioBtns = filterForm['upload-filter'];
+
+    // По умолчанию выбран первый фильтр, т.е. обычная фотка без фильтра
+    radioBtns[0].checked = true;
+
+    if (browserCookies.get('lastUsedFilter')) {
+      for (var i = 0; i < radioBtns.length; i++) {
+        if (radioBtns[i].value === browserCookies.get('lastUsedFilter')) {
+          radioBtns[i].checked = true;
+          filterImage.className = 'filter-image-preview ' + filterMap[radioBtns[i].value];
+        } else {
+          radioBtns[i].checked = false;
+        }
+      }
+    }
+  }
 
   /**
    * Удаляет текущий объект {@link Resizer}, чтобы создать новый с другим
@@ -275,6 +322,12 @@
   filterForm.onsubmit = function(evt) {
     evt.preventDefault();
 
+    var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
+      return item.checked;
+    })[0].value;
+
+    browserCookies.set('lastUsedFilter', selectedFilter, cookiesLifeTime(1, 3));
+
     cleanupResizer();
     updateBackground();
 
@@ -287,16 +340,6 @@
    * выбранному значению в форме.
    */
   filterForm.onchange = function() {
-    if (!filterMap) {
-      // Ленивая инициализация. Объект не создается до тех пор, пока
-      // не понадобится прочитать его в первый раз, а после этого запоминается
-      // навсегда.
-      filterMap = {
-        'none': 'filter-none',
-        'chrome': 'filter-chrome',
-        'sepia': 'filter-sepia'
-      };
-    }
 
     var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
       return item.checked;
@@ -310,4 +353,5 @@
 
   cleanupResizer();
   updateBackground();
+  setLastUsedFilter();
 })();
