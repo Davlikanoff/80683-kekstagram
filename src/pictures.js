@@ -1,12 +1,39 @@
 'use strict';
 
 (function() {
-  var pictures = [];
-  var filterBlock = document.forms['upload-filter'];
-  filterBlock.classList.add('hidden');
+  //Ссылка на файл, содержащий массив данных о картинках
+  /** @constant {string} */
+  var URL_PICS_LOAD = '//o0.github.io/assets/json/pictures.json';
 
+  /** @constant {number} */
+  var IMAGE_LOAD_TIMEOUT = 10000;
+
+  /** @constant {number} */
+  var PAGE_SIZE = 12;
+
+  /** @type {number} */
+  var pageNumber = 0;
+
+  // Картинки в том порядке, в котором они на сервере
+  var pictures = [];
+
+  // Здесь будут храниться картинки в отсортированном порядке
+  var sortedPics = [];
+
+  var filterBlock = document.forms['upload-filter'];
   var picsSortContainer = document.forms[0];
-  var picsSorters = picsSortContainer.elements['filter'];
+
+  // Блок-контейнер, куда будут выводиться картинки
+  var picsContainer = document.querySelector('.pictures');
+  // Шаблон для вывода элемента картинки
+  var picTemplate = document.getElementById('picture-template');
+  var itemToClone;
+
+  if ('content' in picTemplate) {
+    itemToClone = picTemplate.content.querySelector('.picture');
+  } else {
+    itemToClone = picTemplate.querySelector('.picture');
+  }
 
   /**
   * @param {Array.<Object>} hotels
@@ -41,33 +68,28 @@
 
   // Сортируем картинки и выводим их на экран
   var setSorter = function(sorting) {
-    var sortedPics = getSortedPics(pictures, sorting);
+    sortedPics = getSortedPics(pictures, sorting);
 
-    renderPics(sortedPics);
+    pageNumber = 0;
+    renderPics(sortedPics, pageNumber, true);
   };
 
-  // Назначаем всем радиобатонам сортировки одинаковое событие по клику
-  // отличие только в параметре value, передаваемом в функцию вывода отсортированных картинок
+  // Назначаем радиобатонам отработку сортировки по клику
+  // и по нажатию клавиш пробела или Enter
   var setSortingEnabled = function() {
-    for(var i = 0; i < picsSorters.length; i++) {
-      picsSorters[i].onclick = function() {
-        setSorter(this.value);
-      };
-    }
+    picsSortContainer.addEventListener('click', function(event) {
+      if (event.target.name === 'filter') {
+        setSorter(event.target.value);
+      }
+    });
+
+    picsSortContainer.addEventListener('keydown', function(event) {
+      if ((event.target.name === 'filter') && [13, 32].indexOf(event.keyCode) > -1) {
+        event.preventDefault();
+        setSorter(event.target.value);
+      }
+    });
   };
-
-  var picsContainer = document.querySelector('.pictures');
-  var picTemplate = document.getElementById('picture-template');
-  var itemToClone;
-
-  if ('content' in picTemplate) {
-    itemToClone = picTemplate.content.querySelector('.picture');
-  } else {
-    itemToClone = picTemplate.querySelector('.picture');
-  }
-
-  /** @constant {number} */
-  var IMAGE_LOAD_TIMEOUT = 10000;
 
   var getPicItem = function(data, container) {
     var item = itemToClone.cloneNode(true);
@@ -98,18 +120,45 @@
     return item;
   };
 
-  var renderPics = function(pics) {
-    // Очищаем контейнер с картинками перед очередным показом
-    picsContainer.innerHTML = '';
-
-    pics.forEach(function(pic) {
-      getPicItem(pic, picsContainer);
-    });
+  /** @return {boolean} */
+  var isBottomReached = function() {
+    // Нижняя граница контейнера с картинками
+    var containerBottom = picsContainer.getBoundingClientRect().bottom;
+    // Высота вьюпорта
+    var screenHeight = window.innerHeight;
+    return (screenHeight - containerBottom) >= 0;
   };
 
-  //Ссылка на файл, содержащий массив данных о картинках
-  /** @constant {string} */
-  var URL_PICS_LOAD = '//o0.github.io/assets/json/pictures.json';
+  /**
+ * @param {Array} pics
+ * @param {number} page
+ * @param {number} pageSize
+ * @return {boolean}
+ */
+  var isNextPageAvailable = function(pics, page, pageSize) {
+    return page < Math.floor(pics.length / pageSize);
+  };
+
+  var renderPics = function(pics, page, clear) {
+    if(clear) {
+      // Очищаем контейнер с картинками перед очередным показом
+      picsContainer.innerHTML = '';
+    }
+
+    var from = page * PAGE_SIZE;
+    var to = from + PAGE_SIZE;
+
+    pics.slice(from, to).forEach(function(pic) {
+      getPicItem(pic, picsContainer);
+    });
+
+    // Проверяем, есть ли пустое пространство между последней показанной строкой картинок
+    // и если есть, значит экран большой и надо вывести ещё порцию картинок,
+    if( isBottomReached() && isNextPageAvailable(pics, pageNumber, PAGE_SIZE)) {
+      pageNumber++; // берём следующую страницу с картинками
+      renderPics(pics, pageNumber, false);
+    }
+  };
 
   // Скачиваем массив данных о картинках
   /** @param {function(Array.<Object>)} callback */
@@ -132,7 +181,7 @@
       callback(loadedData);
     };
 
-    xhr.timeout = 10000; //таймаут 10 секунд
+    xhr.timeout = IMAGE_LOAD_TIMEOUT;
 
     // Таймаут или какая-то другая ошибка загрузки
     xhr.ontimeout = xhr.onerror = function() {
@@ -143,12 +192,30 @@
     xhr.send();
   };
 
+  var setScrollEnabled = function() {
+    var scrollTimeout;
+
+    window.addEventListener('scroll', function() {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(function() {
+        if (isBottomReached() && isNextPageAvailable(pictures, pageNumber, PAGE_SIZE)) {
+          pageNumber++;
+          renderPics(sortedPics, pageNumber, false);
+        }
+      }, 100);
+    });
+  };
+
+  filterBlock.classList.add('hidden');
+
   getPics(function(loadedPics) {
+    // Получаем изначальный массив картинок
     pictures = loadedPics;
-    renderPics(pictures);
+    setSorter('popular');
     picsSortContainer.classList.remove('hidden');
+    setSortingEnabled();
+    setScrollEnabled();
   });
 
-  setSortingEnabled();
   filterBlock.classList.remove('hidden');
 })();
