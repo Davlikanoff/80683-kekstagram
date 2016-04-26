@@ -297,6 +297,12 @@
      * @param {number} side
      */
     setConstraint: function(x, y, side) {
+      if (typeof side !== 'undefined') {
+        if ((side <= this._image.naturalHeight) && (side <= this._image.naturalWidth)) {
+          this._resizeConstraint.side = parseInt(side, 10);
+        }
+      }
+
       if (typeof x !== 'undefined') {
         x = (x < 0) ? 0 : x;
         if ((x >= 0) && (x + side <= this._image.naturalWidth)) {
@@ -312,12 +318,6 @@
           this._resizeConstraint.y = parseInt(y, 10);
         } else {
           this._resizeConstraint.y = parseInt(this._image.naturalHeight - this._resizeConstraint.side, 10);
-        }
-      }
-
-      if (typeof side !== 'undefined') {
-        if ((side <= this._image.naturalHeight) && (side <= this._image.naturalWidth)) {
-          this._resizeConstraint.side = parseInt(side, 10);
         }
       }
 
