@@ -302,7 +302,7 @@
         if ((x >= 0) && (x + side <= this._image.naturalWidth)) {
           this._resizeConstraint.x = parseInt(x, 10);
         } else {
-          this._resizeConstraint.x = parseInt(this._image.naturalWidth - side, 10);
+          this._resizeConstraint.x = parseInt(this._image.naturalWidth - this._resizeConstraint.side, 10);
         }
       }
 
@@ -311,7 +311,7 @@
         if ((y >= 0) && (y + side <= this._image.naturalHeight)) {
           this._resizeConstraint.y = parseInt(y, 10);
         } else {
-          this._resizeConstraint.y = parseInt(this._image.naturalHeight - side, 10);
+          this._resizeConstraint.y = parseInt(this._image.naturalHeight - this._resizeConstraint.side, 10);
         }
       }
 
