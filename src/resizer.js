@@ -37,9 +37,9 @@
       // Изначально предлагаемое кадрирование — часть по центру с размером в 3/4
       // от размера меньшей стороны.
       this._resizeConstraint = new Square(
-          this._container.width / 2 - side / 2,
-          this._container.height / 2 - side / 2,
-          side);
+          parseInt(this._container.width / 2 - side / 2, 10),
+          parseInt(this._container.height / 2 - side / 2, 10),
+          parseInt(side, 10));
 
       // Отрисовка изначального состояния канваса.
       this.setConstraint();
@@ -105,8 +105,8 @@
       // Установка начальной точки системы координат в центр холста.
       this._ctx.translate(this._container.width / 2, this._container.height / 2);
 
-      var displX = -(this._resizeConstraint.x + this._resizeConstraint.side / 2);
-      var displY = -(this._resizeConstraint.y + this._resizeConstraint.side / 2);
+      var displX = -Math.round(this._resizeConstraint.x + this._resizeConstraint.side / 2);
+      var displY = -Math.round(this._resizeConstraint.y + this._resizeConstraint.side / 2);
 
       // Рисуем полупрозрачный черный фон поверх фото
       this._ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
@@ -114,10 +114,10 @@
 
       // Вырезаем полностью прозрачную область из полупрозрачного фона
       this._ctx.clearRect(
-          -this._resizeConstraint.side / 2,
-          -this._resizeConstraint.side / 2,
-          this._resizeConstraint.side,
-          this._resizeConstraint.side);
+          -Math.round(this._resizeConstraint.side / 2),
+          -Math.round(this._resizeConstraint.side / 2),
+          Math.round(this._resizeConstraint.side),
+          Math.round(this._resizeConstraint.side));
 
       this._ctx.fillStyle = '#ffe753';
       this.drawSquareFrame(this._resizeConstraint.side, 3, 'all');
@@ -182,8 +182,8 @@
           break;
       }
       for (var i = 0; i < side - dotRadius * 2;) {
-        x = coeffX * (side / 2 - dotRadius) + i * stepX;
-        y = coeffY * (side / 2 - dotRadius) + i * stepY;
+        x = parseInt((coeffX * (side / 2 - dotRadius) + i * stepX), 10);
+        y = parseInt((coeffY * (side / 2 - dotRadius) + i * stepY), 10);
         this._ctx.moveTo(x, y);
         this._ctx.beginPath();
         this._ctx.arc(x, y, dotRadius, 0, Math.PI * 2, false);
@@ -297,16 +297,28 @@
      * @param {number} side
      */
     setConstraint: function(x, y, side) {
+      if (typeof side !== 'undefined') {
+        if ((side <= this._image.naturalHeight) && (side <= this._image.naturalWidth)) {
+          this._resizeConstraint.side = parseInt(side, 10);
+        }
+      }
+
       if (typeof x !== 'undefined') {
-        this._resizeConstraint.x = x;
+        x = (x < 0) ? 0 : x;
+        if ((x >= 0) && (x + side <= this._image.naturalWidth)) {
+          this._resizeConstraint.x = parseInt(x, 10);
+        } else {
+          this._resizeConstraint.x = parseInt(this._image.naturalWidth - this._resizeConstraint.side, 10);
+        }
       }
 
       if (typeof y !== 'undefined') {
-        this._resizeConstraint.y = y;
-      }
-
-      if (typeof side !== 'undefined') {
-        this._resizeConstraint.side = side;
+        y = (y < 0) ? 0 : y;
+        if ((y >= 0) && (y + side <= this._image.naturalHeight)) {
+          this._resizeConstraint.y = parseInt(y, 10);
+        } else {
+          this._resizeConstraint.y = parseInt(this._image.naturalHeight - this._resizeConstraint.side, 10);
+        }
       }
 
       requestAnimationFrame(function() {
