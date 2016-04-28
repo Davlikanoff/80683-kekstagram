@@ -7,7 +7,8 @@
 
 'use strict';
 
-var browserCookies = require('browser-cookies');
+var browserCookies = require('./browser-cookies');
+var utils = require('./utils');
 
 (function() {
   /** @enum {string} */
@@ -46,29 +47,6 @@ var browserCookies = require('browser-cookies');
    * @type {Resizer}
    */
   var currentResizer;
-
-  function cookiesLifeTime(month, date) {
-    var currentDate = new Date();
-    var currentMonth = currentDate.getMonth(currentDate) + 1;
-    var currentDay = currentDate.getDate(currentDate);
-    var lastBirthday = new Date(currentDate.getFullYear(), month - 1, date);
-    var diff;
-
-    //Если ДР ещё не наступило, то считаем разницу с прошлого года
-    if ( (month > currentMonth) || (month === currentMonth && date > currentDay ) ) {
-      lastBirthday.setFullYear(currentDate.getFullYear() - 1);
-    }
-
-    //Если ДР сегодня, то срок жизни куки 23:59:59, начиная с текущего времени
-    if ( (month === currentMonth) && (date === currentDay) ) {
-      diff = (23 * 3600 + 59 * 60 + 59) * 1000;
-    } else {
-      diff = currentDate - lastBirthday;
-    }
-
-    var result = new Date(+currentDate + diff).toUTCString();
-    return result;
-  }
 
   function setLastUsedFilter() {
     var radioBtns = filterForm['upload-filter'];
@@ -308,7 +286,7 @@ var browserCookies = require('browser-cookies');
       return item.checked;
     })[0].value;
 
-    browserCookies.set('lastUsedFilter', selectedFilter, cookiesLifeTime(1, 3));
+    browserCookies.set('lastUsedFilter', selectedFilter, utils.cookiesLifeTime(1, 3));
 
     cleanupResizer();
     updateBackground();
