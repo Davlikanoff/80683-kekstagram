@@ -3,6 +3,7 @@
 var load = require('./load');
 var sort = require('./sort');
 var getPic = require('./get-pic');
+var gallery = require('./gallery');
 var utils = require('./utils');
 
 (function() {
@@ -37,6 +38,7 @@ var utils = require('./utils');
   // Сортируем картинки и выводим их на экран
   var setSorter = function(sorting) {
     sortedPics = sort(pictures, sorting);
+    gallery.getPics(sortedPics);
 
     pageNumber = 0;
     renderPics(sortedPics, pageNumber, true);
@@ -98,6 +100,31 @@ var utils = require('./utils');
     utils.setItemHidden(picsContainer, false);
     setSortingEnabled();
     setScrollEnabled();
+  });
+
+  picsContainer.addEventListener('click', function(event) {
+    var sortedPicsImages = sortedPics.map(function(a) {
+      return a.url;
+    });
+    var item = event.target;
+    var imgParentItem, imgItem;
+    var picNum;
+
+    if(item.tagName === 'A') {
+      imgParentItem = item;
+    } else if(item.parentNode.tagName === 'A') {
+      imgParentItem = item.parentNode;
+    } else if(item.parentNode.tagName === 'SPAN') {
+      imgParentItem = item.parentNode.parentNode;
+    }
+
+    imgItem = imgParentItem.querySelector('img');
+    picNum = sortedPicsImages.indexOf(imgItem.getAttribute('src'));
+
+    event.preventDefault();
+    if (picNum >= 0) {
+      gallery.showGallery(picNum);
+    }
   });
 
   utils.setItemHidden(picsSortContainer, false);
