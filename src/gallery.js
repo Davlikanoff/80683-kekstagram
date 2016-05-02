@@ -1,76 +1,77 @@
 /**
- * @fileoverview Модуль, отвечающий за показ фотографий в полном размере
+ * @fileoverview Компонент галереи
  */
 
 'use strict';
 
-var pics = [];
+/** @constructor */
+var Gallery = function() {
+  var self = this;
 
-/** @type {number} */
-var activePic = 0;
+  this.element = document.querySelector('.gallery-overlay');
 
-/** @type {HTMLElement} */
-var galleryContainer = document.querySelector('.gallery-overlay');
+  var img = this.element.querySelector('img');
+  var imgComments = this.element.querySelector('.comments-count');
+  var imgLikes = this.element.querySelector('.likes-count');
 
-/** @type {HTMLElement} */
-var galleryImg = galleryContainer.querySelector('img');
+  this.pictures = [];
+  this.activePicture = 0;
 
-/** @type {HTMLElement} */
-var galleryImgComments = galleryContainer.querySelector('.comments-count');
+  //Функция показа конкретной фотографии по номеру в массиве
+  this.showPic = function(num) {
+    // проверяем не на последнем ли мы элементе
+    // если да, то прыгаем снова на первый
+    self.activePicture = (num >= self.pictures.length) ? 0 : num;
 
-/** @type {HTMLElement} */
-var galleryImgLikes = galleryContainer.querySelector('.likes-count');
+    img.src = self.pictures[self.activePicture].url;
+    imgComments.textContent = self.pictures[self.activePicture].comments;
+    imgLikes.textContent = self.pictures[self.activePicture].likes;
+  };
 
-//Функция показа конкретной фотографии по номеру в массиве
-var showGalleryPic = function(num) {
-  // проверяем не на последнем ли мы элементе
-  // если да, то прыгаем снова на первый
-  activePic = (num >= pics.length) ? 0 : num;
+  //Закрытие галереи по клику на тёмную область вокруг фото
+  this.onOverlayClickHandler = function(event) {
+    if(event.target.classList.contains('gallery-overlay')) {
+      self.hide();
+    }
+  };
 
-  galleryImg.src = pics[activePic].url;
-  galleryImgComments.textContent = pics[activePic].comments;
-  galleryImgLikes.textContent = pics[activePic].likes;
+  //Показ следующей фотки по клику на текущее фото
+  this.onPhotoClickHandler = function(event) {
+    if(event.target.classList.contains('gallery-overlay-image')) {
+      self.activePicture++;
+      self.showPic(self.activePicture);
+    }
+  };
+
+  //Закрытие галереи по нажатию ESC
+  this.onDocumentKeyDownHandler = function(event) {
+    if(event.keyCode === 27) {
+      self.hide();
+    }
+  };
+
+  this.hide = function() {
+    this.element.classList.add('invisible');
+
+    document.removeEventListener('keydown', this.onDocumentKeyDownHandler);
+    img.removeEventListener('click', this.onPhotoClickHandler);
+    this.element.removeEventListener('click', this.onOverlayClickHandler);
+    this.element.removeEventListener('keydown', this.onDocumentKeyDownHandler);
+  };
+
+  this.getPics = function(initialPics) {
+    this.pictures = initialPics;
+  };
+
+  this.show = function(num) {
+    this.showPic(num);
+    this.element.classList.remove('invisible');
+
+    document.addEventListener('keydown', this.onDocumentKeyDownHandler);
+    img.addEventListener('click', this.onPhotoClickHandler);
+    this.element.addEventListener('click', this.onOverlayClickHandler);
+    this.element.addEventListener('keydown', this.onDocumentKeyDownHandler);
+  };
 };
 
-//Функция показа следующей фотки по клику на текущее фото
-var _onPhotoClick = function(event) {
-  if(event.target.classList.contains('gallery-overlay-image')) {
-    activePic++;
-    showGalleryPic(activePic);
-  }
-};
-
-//Функция закрытия галереи по нажатию ESC
-var _onDocumentKeyDown = function(event) {
-  if(event.keyCode === 27) {
-    hideGallery();
-  }
-};
-
-var hideGallery = function() {
-  galleryContainer.classList.add('invisible');
-
-  document.removeEventListener('keydown', _onDocumentKeyDown);
-  galleryContainer.removeEventListener('click', _onPhotoClick);
-  galleryContainer.removeEventListener('keydown', _onDocumentKeyDown);
-};
-
-galleryContainer.addEventListener('click', function(event) {
-  if(event.target.classList.contains('gallery-overlay')) {
-    hideGallery();
-  }
-});
-
-module.exports = {
-  getPics: function(arr) {
-    pics = arr;
-  },
-  showGallery: function(num) {
-    showGalleryPic(num);
-    galleryContainer.classList.remove('invisible');
-
-    document.addEventListener('keydown', _onDocumentKeyDown);
-    galleryContainer.addEventListener('click', _onPhotoClick);
-    galleryContainer.addEventListener('keydown', _onDocumentKeyDown);
-  }
-};
+module.exports = new Gallery();
