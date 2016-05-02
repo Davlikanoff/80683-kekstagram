@@ -2,7 +2,7 @@
 
 var load = require('./load');
 var sort = require('./sort');
-var getPic = require('./get-pic');
+var Pic = require('./pic');
 var gallery = require('./gallery');
 var utils = require('./utils');
 
@@ -28,6 +28,12 @@ var utils = require('./utils');
 
   // Здесь будут храниться картинки в отсортированном порядке
   var sortedPics = [];
+
+  /**
+ * Массив отрисованных объектов фотографии
+ * @type {Array.<Pic>}
+ */
+  var renderedPics = [];
 
   //var filterBlock = document.forms['upload-filter'];
   var picsSortContainer = document.forms[0];
@@ -64,14 +70,19 @@ var utils = require('./utils');
   var renderPics = function(pics, page, clear) {
     if(clear) {
       // Очищаем контейнер с картинками перед очередным показом
-      picsContainer.innerHTML = '';
+      renderedPics.forEach(function(pic) {
+        pic.remove();
+      });
+
+      renderedPics = [];
     }
 
     var from = page * PAGE_SIZE;
     var to = from + PAGE_SIZE;
 
-    pics.slice(from, to).forEach(function(pic) {
-      getPic(pic, picsContainer);
+    pics.slice(from, to).forEach(function(pic, i) {
+      i = i + from;
+      renderedPics.push(new Pic(pic, picsContainer, i));
     });
 
     // Проверяем, есть ли пустое пространство между последней показанной строкой картинок
@@ -100,31 +111,6 @@ var utils = require('./utils');
     utils.setItemHidden(picsContainer, false);
     setSortingEnabled();
     setScrollEnabled();
-  });
-
-  picsContainer.addEventListener('click', function(event) {
-    var sortedPicsImages = sortedPics.map(function(a) {
-      return a.url;
-    });
-    var item = event.target;
-    var imgParentItem, imgItem;
-    var picNum;
-
-    if(item.tagName === 'A') {
-      imgParentItem = item;
-    } else if(item.parentNode.tagName === 'A') {
-      imgParentItem = item.parentNode;
-    } else if(item.parentNode.tagName === 'SPAN') {
-      imgParentItem = item.parentNode.parentNode;
-    }
-
-    imgItem = imgParentItem.querySelector('img');
-    picNum = sortedPicsImages.indexOf(imgItem.getAttribute('src'));
-
-    event.preventDefault();
-    if (picNum >= 0) {
-      gallery.showGallery(picNum);
-    }
   });
 
   utils.setItemHidden(picsSortContainer, false);
