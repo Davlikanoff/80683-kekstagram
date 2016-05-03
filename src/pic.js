@@ -25,7 +25,7 @@ var Pic = function(data, container, num) {
 
   this.onPicClick = function(event) {
     event.preventDefault();
-    gallery.showGallery(self.num);
+    gallery.show(self.num);
   };
 
   this.remove = function() {
