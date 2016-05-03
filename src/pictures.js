@@ -35,8 +35,10 @@ var utils = require('./utils');
  */
   var renderedPics = [];
 
-  //var filterBlock = document.forms['upload-filter'];
   var picsSortContainer = document.forms[0];
+
+  // Радиобатоны для выбора типа сортировки
+  var picsSortContainerTypes = picsSortContainer.elements['filter'];
 
   // Блок-контейнер, куда будут выводиться картинки
   var picsContainer = document.querySelector('.pictures');
@@ -48,6 +50,11 @@ var utils = require('./utils');
 
     pageNumber = 0;
     renderPics(sortedPics, pageNumber, true);
+
+    // сохраняем текущий тип сортировки в localstorage
+    localStorage.setItem('lastUsedSorting', sorting);
+    // подсвечиваем соответствующий радиобатон в сортировщике
+    picsSortContainerTypes.value = sorting;
   };
 
   // Назначаем радиобатонам отработку сортировки по клику
@@ -107,7 +114,13 @@ var utils = require('./utils');
   load(picsContainer, IMAGE_LOAD_TIMEOUT, URL_PICS_LOAD, function(loadedPics) {
     // Получаем изначальный массив картинок
     pictures = loadedPics;
-    setSorter('popular');
+
+    // Пытаемся получить последний использованный вариант сортировки фотографий из localStorage
+    var lastSorting = localStorage.getItem('lastUsedSorting');
+    // и если не находим, то просто используемый сортировку по умолчанию(popular)
+    lastSorting = (lastSorting !== '') ? lastSorting : 'popular';
+
+    setSorter(lastSorting);
     utils.setItemHidden(picsContainer, false);
     setSortingEnabled();
     setScrollEnabled();
