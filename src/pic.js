@@ -9,7 +9,6 @@
 'use strict';
 
 var getPic = require('./get-pic');
-//var gallery = require('./gallery');
 
 var hashStart = '#photo/';
 
@@ -20,22 +19,23 @@ var hashStart = '#photo/';
  * @constructor
  */
 var Pic = function(data, container, num) {
-  var self = this;
   this.data = data;
   this.element = getPic(this.data, container);
   this.num = num; // порядковый номер фотографии элемента, в массиве фотографий
 
-  this.onPicClick = function(event) {
-    event.preventDefault();
-    location.hash = hashStart + self.data.url;
-  };
-
-  this.remove = function() {
-    this.element.removeEventListener('click', this.onPicClick);
-    this.element.parentNode.removeChild(this.element);
-  };
+  this.onPicClick = this.onPicClick.bind(this);
 
   this.element.addEventListener('click', this.onPicClick);
+};
+
+Pic.prototype.onPicClick = function(event) {
+  event.preventDefault();
+  location.hash = hashStart + this.data.url;
+};
+
+Pic.prototype.remove = function() {
+  this.element.removeEventListener('click', this.onPicClick);
+  this.element.parentNode.removeChild(this.element);
 };
 
 module.exports = Pic;
