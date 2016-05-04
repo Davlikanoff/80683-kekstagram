@@ -9,7 +9,9 @@
 'use strict';
 
 var getPic = require('./get-pic');
-var gallery = require('./gallery');
+//var gallery = require('./gallery');
+
+var hashStart = '#photo/';
 
 /**
  * @param {Object} data
@@ -25,7 +27,7 @@ var Pic = function(data, container, num) {
 
   this.onPicClick = function(event) {
     event.preventDefault();
-    gallery.show(self.num);
+    location.hash = hashStart + self.data.url;
   };
 
   this.remove = function() {
