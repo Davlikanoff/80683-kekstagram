@@ -4,6 +4,8 @@
 
 'use strict';
 
+var hashStart = '#photo/';
+
 /** @constructor */
 var Gallery = function() {
   var self = this;
@@ -15,13 +17,20 @@ var Gallery = function() {
   var imgLikes = this.element.querySelector('.likes-count');
 
   this.pictures = [];
+  // массив, в котором будут хранится только пути к фотографиям
+  this.picturesURL = [];
   this.activePicture = 0;
 
-  //Функция показа конкретной фотографии по номеру в массиве
-  this.showPic = function(num) {
-    // проверяем не на последнем ли мы элементе
-    // если да, то прыгаем снова на первый
-    self.activePicture = (num >= self.pictures.length) ? 0 : num;
+  // Функция показа конкретной фотографии по номеру в массиве
+  // или по пути к фотографии
+  this.showPic = function(photo) {
+    if (typeof (photo) === 'string') {
+      self.activePicture = self.picturesURL.indexOf(photo);
+    } else {
+      // проверяем не на последнем ли мы элементе
+      // если да, то прыгаем снова на первый
+      self.activePicture = (photo >= self.pictures.length) ? 0 : photo;
+    }
 
     img.src = self.pictures[self.activePicture].url;
     imgComments.textContent = self.pictures[self.activePicture].comments;
@@ -39,7 +48,12 @@ var Gallery = function() {
   this.onPhotoClickHandler = function(event) {
     if(event.target.classList.contains('gallery-overlay-image')) {
       self.activePicture++;
-      self.showPic(self.activePicture);
+
+      if (self.activePicture >= self.pictures.length) {
+        self.activePicture = 0;
+      }
+
+      location.hash = hashStart + self.picturesURL[self.activePicture];
     }
   };
 
@@ -51,6 +65,7 @@ var Gallery = function() {
   };
 
   this.hide = function() {
+    location.hash = '';
     this.element.classList.add('invisible');
 
     document.removeEventListener('keydown', this.onDocumentKeyDownHandler);
@@ -61,10 +76,13 @@ var Gallery = function() {
 
   this.getPics = function(initialPics) {
     this.pictures = initialPics;
+    this.picturesURL = this.pictures.map(function(picture) {
+      return picture.url;
+    });
   };
 
-  this.show = function(num) {
-    this.showPic(num);
+  this.show = function(photo) {
+    this.showPic(photo);
     this.element.classList.remove('invisible');
 
     document.addEventListener('keydown', this.onDocumentKeyDownHandler);
@@ -72,6 +90,17 @@ var Gallery = function() {
     this.element.addEventListener('click', this.onOverlayClickHandler);
     this.element.addEventListener('keydown', this.onDocumentKeyDownHandler);
   };
+
+  // Следим за хэшем адресной строки и реагируем на изменения
+  this.onLocationHashCheck = function() {
+    var photoPath = location.hash.match(/#photo\/(\S+)/);
+    if (photoPath !== null) {
+      self.show(photoPath[1]);
+    }
+  };
+
+  window.addEventListener('hashchange', this.onLocationHashCheck);
+  window.addEventListener('load', this.onLocationHashCheck);
 };
 
 module.exports = new Gallery();
