@@ -4,11 +4,12 @@
 
 'use strict';
 
-var hashStart = '#photo/';
+var BaseComponent = require('./base-component');
+var utils = require('./utils');
 
 /** @constructor */
 var Gallery = function() {
-  this.element = document.querySelector('.gallery-overlay');
+  BaseComponent.call(this, document.querySelector('.gallery-overlay'));
 
   this.img = this.element.querySelector('img');
   this.imgComments = this.element.querySelector('.comments-count');
@@ -19,11 +20,13 @@ var Gallery = function() {
   this.picturesURL = [];
   this.activePicture = 0;
 
+  // Общие функции компонент от BaseComponent
+  this.onClickHandler = this.onClickHandler.bind(this);
+  this.onKeyDownHandler = this.onKeyDownHandler.bind(this);
+
+  // Уникальные функции конструктора
   this.showPic = this.showPic.bind(this);
   this.hide = this.hide.bind(this);
-  this.onPhotoClickHandler = this.onPhotoClickHandler.bind(this);
-  this.onOverlayClickHandler = this.onOverlayClickHandler.bind(this);
-  this.onDocumentKeyDownHandler = this.onDocumentKeyDownHandler.bind(this);
   this.getPics = this.getPics.bind(this);
   this.show = this.show.bind(this);
   this.onLocationHashCheck = this.onLocationHashCheck.bind(this);
@@ -36,7 +39,12 @@ var Gallery = function() {
 // или по пути к фотографии
 Gallery.prototype.showPic = function(photo) {
   if (typeof (photo) === 'string') {
-    this.activePicture = this.picturesURL.indexOf(photo);
+    photo = this.picturesURL.indexOf(photo);
+  }
+  // Если фото не найдено, то не показываем галерею
+  if (photo < 0) {
+    this.hide();
+    return;
   } else {
     // проверяем не на последнем ли мы элементе
     // если да, то прыгаем снова на первый
@@ -48,28 +56,25 @@ Gallery.prototype.showPic = function(photo) {
   this.imgLikes.textContent = this.pictures[this.activePicture].likes;
 };
 
-//Показ следующей фотки по клику на текущее фото
-Gallery.prototype.onPhotoClickHandler = function(event) {
-  if(event.target.classList.contains('gallery-overlay-image')) {
+// Обработчки кликов компоненты
+Gallery.prototype.onClickHandler = function(event) {
+  var elClassList = event.target.classList;
+
+  if(elClassList.contains('gallery-overlay-image')) {
     this.activePicture++;
 
     if (this.activePicture >= this.pictures.length) {
       this.activePicture = 0;
     }
 
-    location.hash = hashStart + this.picturesURL[this.activePicture];
-  }
-};
-
-//Закрытие галереи по клику на тёмную область вокруг фото
-Gallery.prototype.onOverlayClickHandler = function(event) {
-  if(event.target.classList.contains('gallery-overlay')) {
+    location.hash = utils.HASH_START + this.picturesURL[this.activePicture];
+  } else if(elClassList.contains('gallery-overlay') || elClassList.contains('gallery-overlay-close')) {
     this.hide();
   }
 };
 
 //Закрытие галереи по нажатию ESC
-Gallery.prototype.onDocumentKeyDownHandler = function(event) {
+Gallery.prototype.onKeyDownHandler = function(event) {
   if(event.keyCode === 27) {
     this.hide();
   }
@@ -79,10 +84,7 @@ Gallery.prototype.hide = function() {
   location.hash = '';
   this.element.classList.add('invisible');
 
-  document.removeEventListener('keydown', this.onDocumentKeyDownHandler);
-  this.img.removeEventListener('click', this.onPhotoClickHandler);
-  this.element.removeEventListener('click', this.onOverlayClickHandler);
-  this.element.removeEventListener('keydown', this.onDocumentKeyDownHandler);
+  BaseComponent.prototype.remove.call(this, false);
 };
 
 Gallery.prototype.getPics = function(initialPics) {
@@ -96,10 +98,7 @@ Gallery.prototype.show = function(photo) {
   this.showPic(photo);
   this.element.classList.remove('invisible');
 
-  document.addEventListener('keydown', this.onDocumentKeyDownHandler);
-  this.img.addEventListener('click', this.onPhotoClickHandler);
-  this.element.addEventListener('click', this.onOverlayClickHandler);
-  this.element.addEventListener('keydown', this.onDocumentKeyDownHandler);
+  BaseComponent.prototype.create.call(this);
 };
 
 // Следим за хэшем адресной строки и реагируем на изменения

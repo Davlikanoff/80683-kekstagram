@@ -9,33 +9,28 @@
 'use strict';
 
 var getPic = require('./get-pic');
-
-var hashStart = '#photo/';
+var BaseComponent = require('./base-component');
+var utils = require('./utils');
 
 /**
  * @param {Object} data
  * @param {Element} container
- * @param {number} num
  * @constructor
  */
-var Pic = function(data, container, num) {
+var Pic = function(data, container) {
   this.data = data;
-  this.element = getPic(this.data, container);
-  this.num = num; // порядковый номер фотографии элемента, в массиве фотографий
+  BaseComponent.call(this, getPic(this.data, container));
 
-  this.onPicClick = this.onPicClick.bind(this);
+  this.onClickHandler = this.onClickHandler.bind(this);
 
-  this.element.addEventListener('click', this.onPicClick);
+  BaseComponent.prototype.create.call(this, container);
 };
 
-Pic.prototype.onPicClick = function(event) {
+utils.inherit(Pic, BaseComponent);
+
+Pic.prototype.onClickHandler = function(event) {
   event.preventDefault();
-  location.hash = hashStart + this.data.url;
-};
-
-Pic.prototype.remove = function() {
-  this.element.removeEventListener('click', this.onPicClick);
-  this.element.parentNode.removeChild(this.element);
+  location.hash = utils.HASH_START + this.data.url;
 };
 
 module.exports = Pic;

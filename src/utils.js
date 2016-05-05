@@ -8,6 +8,8 @@
 var HIDDEN_CLASSNAME = 'hidden';
 
 module.exports = {
+  HASH_START: '#photo/',
+
   /**
    * @param {month} number
    * @param {date} number
@@ -75,5 +77,9 @@ module.exports = {
       clearTimeout(fn._timeoutID);
       fn._timeoutID = setTimeout(fn, timeout);
     };
+  },
+
+  inherit: function(childObj, parentObj) {
+    childObj.prototype = Object.create(parentObj.prototype);
   }
 };

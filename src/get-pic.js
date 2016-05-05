@@ -23,7 +23,7 @@ if ('content' in picTemplate) {
  * @param {HTMLElement} container
  * @return {HTMLElement}
  */
-var getPicItem = function(data, container) {
+var getPicItem = function(data) {
   var item = itemToClone.cloneNode(true);
   var itemPic = item.querySelector('img');
   item.querySelector('.picture-comments').textContent = data.comments;
@@ -48,8 +48,6 @@ var getPicItem = function(data, container) {
     item.src = '';
     item.classList.add('picture-load-failure');
   }, IMAGE_LOAD_TIMEOUT);
-
-  container.appendChild(item);
 
   return item;
 };

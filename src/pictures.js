@@ -78,7 +78,7 @@ var utils = require('./utils');
     if(clear) {
       // Очищаем контейнер с картинками перед очередным показом
       renderedPics.forEach(function(pic) {
-        pic.remove();
+        pic.remove(true);
       });
 
       renderedPics = [];
@@ -89,7 +89,8 @@ var utils = require('./utils');
 
     pics.slice(from, to).forEach(function(pic, i) {
       i = i + from;
-      renderedPics.push(new Pic(pic, picsContainer, i));
+      //renderedPics.push(new Pic(pic, picsContainer, i));
+      renderedPics.push(new Pic(pic, picsContainer));
     });
 
     // Проверяем, есть ли пустое пространство между последней показанной строкой картинок
@@ -119,12 +120,12 @@ var utils = require('./utils');
     var lastSorting = localStorage.getItem('lastUsedSorting');
     // и если не находим, то просто используемый сортировку по умолчанию(popular)
     lastSorting = (lastSorting !== '') ? lastSorting : 'popular';
-
     setSorter(lastSorting);
+
     utils.setItemHidden(picsContainer, false);
     setSortingEnabled();
     setScrollEnabled();
+    utils.setItemHidden(picsSortContainer, false);
   });
 
-  utils.setItemHidden(picsSortContainer, false);
 })();
